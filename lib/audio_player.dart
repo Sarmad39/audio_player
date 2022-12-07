@@ -106,6 +106,7 @@ class _AudioPalyerScreenState extends State<AudioPalyerScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // volume
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -149,6 +150,8 @@ class _AudioPalyerScreenState extends State<AudioPalyerScreen> {
           SizedBox(
             height: height * 4,
           ),
+
+          // audio title
           Container(
             height: height * 3,
             width: 150,
