@@ -20,6 +20,7 @@ class _AudioPalyerScreenState extends State<AudioPalyerScreen> {
   final audioplayer = AudioPlayer();
   String title = 'Current Audio';
   bool isMuted = false;
+  double volume = 1;
   bool isFirst = true;
   bool isPlaying = false;
   Duration _totalduration = Duration.zero;
@@ -39,7 +40,6 @@ class _AudioPalyerScreenState extends State<AudioPalyerScreen> {
   @override
   void dispose() {
     super.dispose();
-    audioplayer.stop();
     audioplayer.dispose();
   }
 
@@ -58,8 +58,7 @@ class _AudioPalyerScreenState extends State<AudioPalyerScreen> {
   }
 
   Future<void> setAudio() async {
-    audioplayer.setReleaseMode(ReleaseMode.loop);
-    audioplayer.stop();
+    audioplayer.setReleaseMode(ReleaseMode.stop);
     final source = _getsource();
     await audioplayer.play(source!);
     setState(() {
@@ -99,21 +98,76 @@ class _AudioPalyerScreenState extends State<AudioPalyerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double height = MediaQuery.of(context).size.height / 100;
+
     return Padding(
       padding: EdgeInsets.all(20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.network(
-              "https://images.unsplash.com/photo-1484704849700-f032a568e944?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"),
-          const SizedBox(
-            height: 10,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              InkWell(
+                  onTap: () {
+                    audioplayer.setVolume(isMuted ? 1 : 0);
+                    setState(() {
+                      if (isMuted) {
+                        volume = 1;
+                      } else {
+                        volume = 0;
+                      }
+                      isMuted = !isMuted;
+                    });
+                  },
+                  child: Icon(
+                    isMuted ? Icons.volume_mute : Icons.volume_up,
+                    size: 25,
+                    color: Color.fromRGBO(78, 78, 78, 1),
+                  )),
+              Slider(
+                  activeColor: Color.fromRGBO(78, 78, 78, .7),
+                  thumbColor:  Color.fromRGBO(78, 78, 78, 1),
+                  inactiveColor: Color.fromRGBO(90, 90, 90, 0.3),
+                  min: 0,
+                  max: 1,
+                  value: volume,
+                  onChanged: (value) async {
+                    volume = value;
+                    audioplayer.setVolume(volume);
+                    setState(() {});
+                  }),
+            ],
           ),
-          Text(
-            title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          const CircleAvatar(
+            minRadius: 130,
+            backgroundImage: NetworkImage(
+              "https://images.unsplash.com/photo-1484704849700-f032a568e944?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+            ),
           ),
-          const SizedBox(
-            height: 10,
+          SizedBox(
+            height: height * 4,
+          ),
+          Container(
+            height: height * 3,
+            width: 150,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Color.fromRGBO(90, 90, 90, 1),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: height * 5,
           ),
 
           //progress bar
@@ -127,7 +181,7 @@ class _AudioPalyerScreenState extends State<AudioPalyerScreen> {
                 await audioplayer.seek(position);
               }),
 
-          // current and total duration of audio
+          // current position and total duration of audio
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -137,55 +191,59 @@ class _AudioPalyerScreenState extends State<AudioPalyerScreen> {
             ],
           ),
 
+          SizedBox(
+            height: height * 1,
+          ),
           // controls to audio player)
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CircleAvatar(
-                child: IconButton(
-                  icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                  onPressed: () async {
-                    if (isPlaying) {
-                      await audioplayer.pause();
-                    } else {
-                      await audioplayer.resume();
-                    }
-                  },
+              IconButton(
+                onPressed: () {
+                  audioplayer.seek(position - const Duration(seconds: 5));
+                },
+                icon: const Icon(
+                  Icons.replay_5,
+                  size: 30,
+                  color: Color.fromRGBO(78, 78, 78, 1),
                 ),
               ),
-              const SizedBox(
-                width: 10,
-              ),
-              CircleAvatar(
-                child: IconButton(
-                  onPressed: () {
-                    audioplayer.seek(position - const Duration(seconds: 5));
-                  },
-                  icon: const Icon(Icons.replay_5),
+              IconButton(
+                icon: Icon(
+                  isPlaying ? Icons.pause : Icons.play_arrow,
+                  size: 30,
+                 color: Color.fromRGBO(78, 78, 78, 1),
                 ),
+                onPressed: () async {
+                  if (isPlaying) {
+                    await audioplayer.pause();
+                  } else {
+                    await audioplayer.resume();
+                  }
+                },
               ),
-              const SizedBox(
-                width: 10,
-              ),
-              CircleAvatar(
-                child: IconButton(
-                  onPressed: () {
-                    audioplayer.seek(position + const Duration(seconds: 5));
-                  },
-                  icon: const Icon(Icons.forward_5),
+              IconButton(
+                icon: Icon(
+                  Icons.stop,
+                  size: 30,
+                  color: Color.fromRGBO(78, 78, 78, 1),
                 ),
+                onPressed: () async {
+                  if (isPlaying) {
+                    await audioplayer.stop();
+                  }
+                },
               ),
-              const SizedBox(
-                width: 10,
-              ),
-              CircleAvatar(
-                child: IconButton(
-                    onPressed: () {
-                      audioplayer.setVolume(isMuted ? 1 : 0);
-                      setState(() {
-                        isMuted = !isMuted;
-                      });
-                    },
-                    icon: Icon(isMuted ? Icons.volume_mute : Icons.volume_up)),
+              IconButton(
+                onPressed: () {
+                  audioplayer.seek(position + const Duration(seconds: 5));
+                },
+                icon: const Icon(
+                  Icons.forward_5,
+                  size: 30,
+                  color: Color.fromRGBO(78, 78, 78, 1),
+                ),
               ),
             ],
           )
